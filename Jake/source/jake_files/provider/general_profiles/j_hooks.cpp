@@ -13,15 +13,18 @@ settings_t __hooks_settings = {
 
 configuration_t get_default_hooks( void ) {
     if(settings[S_LILLY_BIBTEX] != "") {
-        return {
-            {"IN1:Bibtex-Compile", "(bibtex $(basename ${1}`cat /tmp/lillytmp.bib.p`-${2}) >> $(OUTPUTDIR)LILLY_COMPILE.log 2>&1) && echo SUCCESS || echo FAILURE"}
-        };
+        
+            if (settings[S_LILLY_SHOW_BOX_NAME]=="true")
+            return {{"IN1:Bibtex-Compile", "(bibtex $(basename ${1}`cat /tmp/lillytmp.bib.p`-${2}) >> $(OUTPUTDIR)LILLY_COMPILE.log 2>&1) && echo SUCCESS || echo FAILURE"}};
+            else return {{"IN1:Bibtex-Compile", "(bibtex $(basename ${1}${2}) >> $(OUTPUTDIR)LILLY_COMPILE.log 2>&1) && echo SUCCESS || echo FAILURE"}};
+        
     }
 
-    return {
-            {"PRE:hello-world", "echo Hello World"},
-            {"POST:hello-world-out", "echo Hello World - I am out"}
-        };
+    configuration_t ret;
+    for(int i = 0; i < std::stoi(settings[S_LILLY_COMPILETIMES]); ++i) {
+        ret["IN" + std::to_string(i) + ":compile-" + std::to_string(i)] = "echo Kompiliere " + std::to_string(i+1) + "/" + settings[S_LILLY_COMPILETIMES];
+    }
+    return ret;
 }
 
 configuration_t getHooks(const std::string& rulefiles) {
